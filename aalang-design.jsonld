@@ -89,14 +89,28 @@
         "active_mode": {"type": "mode", "enforcement": "runtime-enforced", "description": "current active mode"},
         "personas": {"type": "array", "optional": true, "pattern": "library", "description": "optional internal personas"},
         "isolated_context": {"type": "state", "scope": "private", "description": "actor-specific reasoning state"},
-        "shared_artifacts": {"type": "state", "scope": "shared within agent", "description": "messages, decisions accessible to all actors"}
+        "shared_artifacts": {"type": "state", "scope": "shared within agent", "description": "messages, decisions accessible to all actors"},
+        "file_io_capability": {
+          "type": "object",
+          "optional": true,
+          "description": "File I/O capability declaration for this actor",
+          "properties": {
+            "enabled": {"type": "boolean", "description": "whether file I/O is enabled for this actor"},
+            "allowed_operations": {"type": "array", "items": {"enum": ["read", "write", "list", "delete", "create_directory"]}},
+            "path_restrictions": {"type": "object", "description": "allowed/disallowed paths"},
+            "permissions": {"type": "object", "description": "read-only vs read-write permissions"}
+          }
+        },
+        "prohibitions": {"type": "array", "optional": true, "pattern": "ex:ProhibitionPattern", "description": "Structured prohibitions with severity levels - see ex:ProhibitionPattern for structure definition (defined in agent-to-actor.jsonld)"},
+        "requirements": {"type": "array", "optional": true, "pattern": "ex:RequirementPattern", "description": "Structured requirements with severity levels - see ex:RequirementPattern for structure definition (defined in agent-to-actor.jsonld)"}
       },
       "capabilities": [
         "Interpret and execute AALang message syntax independently",
         "Support mode-switching with distinct behavioral constraints",
         "Support state partitioning (isolated private context vs shared artifacts)",
         "Support structured negotiation protocols for multi-actor decision-making",
-        "Reject messages violating prompt-described constraints"
+        "Reject messages violating prompt-described constraints",
+        "Support file I/O operations when declared (optional capability)"
       ],
       "contains": [
         {"@id": "ex:Persona", "optional": true, "cardinality": "0 or more"}
@@ -115,7 +129,9 @@
         "constraints": {"type": "rules", "source": "declared in prompt", "description": "behavioral rules per mode"},
         "transition_rules": {"type": "rules", "enforcement": "runtime-enforced", "description": "valid transitions between modes"},
         "message_interpretation": {"type": "rules", "scope": "mode-specific", "description": "mode-specific message interpretation"},
-        "bounded_non_determinism": {"type": "scope", "description": "acceptable variance boundaries for this mode"}
+        "bounded_non_determinism": {"type": "scope", "description": "acceptable variance boundaries for this mode"},
+        "prohibitions": {"type": "array", "optional": true, "pattern": "ex:ProhibitionPattern", "description": "Structured prohibitions with severity levels - see ex:ProhibitionPattern for structure definition (defined in agent-to-actor.jsonld)"},
+        "requirements": {"type": "array", "optional": true, "pattern": "ex:RequirementPattern", "description": "Structured requirements with severity levels - see ex:RequirementPattern for structure definition (defined in agent-to-actor.jsonld)"}
       },
       "characteristics": [
         "Different reasoning constraints and goals per mode",
@@ -149,7 +165,9 @@
           "source": "explicit declaration in prompt",
           "discovery": "all personas know matrix at instantiation"
         },
-        "deliberation_protocol": {"type": "protocol", "pattern": "negotiation"}
+        "deliberation_protocol": {"type": "protocol", "pattern": "negotiation"},
+        "prohibitions": {"type": "array", "optional": true, "pattern": "ex:ProhibitionPattern", "description": "Structured prohibitions with severity levels - see ex:ProhibitionPattern for structure definition (defined in agent-to-actor.jsonld)"},
+        "requirements": {"type": "array", "optional": true, "pattern": "ex:RequirementPattern", "description": "Structured requirements with severity levels - see ex:RequirementPattern for structure definition (defined in agent-to-actor.jsonld)"}
       },
       "usage": {
         "optional": "Actors choose when to employ persona-based reasoning",
@@ -546,6 +564,11 @@
         {
           "@id": "ex:MessageFormat",
           "description": "Message format schema"
+        },
+        {
+          "@id": "ex:FileIOCapability",
+          "description": "File I/O capability declaration (optional, only if tool needs file operations)",
+          "properties": ["enabled", "allowed_operations", "path_restrictions", "permissions", "defaultExtension"]
         }
       ],
       "llmOptimized": {
@@ -598,13 +621,24 @@
           "questions": [
             "For operations using LLM reasoning, do instructions explicitly prohibit system command execution?",
             "Are commands like python, shell commands, random.randint, etc. explicitly forbidden?",
-            "Is it clear that LLMs should use reasoning/imagination, not code execution?"
+            "Is it clear that LLMs should use reasoning/imagination, not code execution?",
+            "If file I/O is declared, are file operations properly scoped and secured (path restrictions, permissions)?"
           ],
           "commonIssues": [
             "LLM executing 'python3 -c' or similar commands",
             "Attempting to use random.randint instead of LLM reasoning",
-            "Unauthorized system command execution"
-          ]
+            "Unauthorized system command execution",
+            "File I/O operations without proper path restrictions or security declarations"
+          ],
+          "fileIOGuidance": {
+            "description": "File I/O is allowed when explicitly declared as a capability",
+            "requirements": [
+              "File I/O must be explicitly declared in tool/actor definition",
+              "Path restrictions and permissions must be specified",
+              "File operations should use LLM function calling or MCP tools, not system commands",
+              "File I/O should be scoped to specific directories when possible"
+            ]
+          }
         },
         "edgeCaseHandling": {
           "category": "Edge Case Handling",
@@ -612,6 +646,8 @@
             "How are duplicates handled (duplicate messages, duplicate requests)?",
             "What happens during state initialization?",
             "How are errors handled (invalid inputs, missing state, etc.)?",
+            "If file I/O is declared, how are file permission errors handled?",
+            "If file I/O is declared, what happens when files don't exist or paths are invalid?",
             "What is the cross-session behavior (persistence, state recovery)?",
             "How are race conditions or concurrent operations handled?"
           ],
@@ -619,7 +655,10 @@
             "Duplicate message processing",
             "Missing error handling",
             "Unclear state initialization",
-            "State synchronization issues"
+            "State synchronization issues",
+            "File I/O operations failing silently or crashing tool",
+            "Permission errors not handled gracefully",
+            "Path restriction violations not caught before execution"
           ]
         },
         "stateManagement": {
@@ -648,6 +687,407 @@
         "5. Before finalizing, ensure all 5 categories have been systematically verified"
       ],
       "documentation": "When using the checklist, personas should explicitly state which categories were checked and how requirements were met or what fixes were proposed"
+    },
+    {
+      "@id": "ex:FileIOCapability",
+      "@type": "Concept",
+      "rdfs:label": "File I/O Capability",
+      "description": "Optional capability for AALang products to perform file input/output operations",
+      "optional": true,
+      "declaration": "explicitly declared in agent/tool prompt when needed",
+      "scope": "product-level or actor-level capability",
+      "purpose": "Enable tools and agents to read from and write to filesystem",
+      "constraints": {
+        "security": "Path restrictions and permission model should be explicitly declared",
+        "execution": "File I/O operations executed via LLM function calling or MCP tools",
+        "integration": "Must align with AALang architecture (n-mode-m-actor pattern)"
+      },
+      "fileTypeDefaults": {
+        "defaultExtension": {
+          "optional": true,
+          "description": "Default file extension for this tool if filename provided without extension",
+          "note": "Only applies when filename is provided without extension. Tool can override per operation."
+        },
+        "extensionRequired": {
+          "default": true,
+          "description": "Whether file extension is required in file_path parameter",
+          "note": "If false, tool must declare defaultExtension"
+        }
+      }
+    },
+    {
+      "@id": "ex:FileIOOperations",
+      "@type": "Schema",
+      "rdfs:label": "File I/O Operations",
+      "operations": {
+        "read": {
+          "description": "Read content from a file",
+          "parameters": {
+            "file_path": {
+              "type": "string",
+              "required": true,
+              "description": "Full file path including filename and extension. Extension is required unless tool declares defaultExtension.",
+              "examples": [
+                "./notes/shopping.txt",
+                "./data/2025-01-15.json",
+                "./output/product.jsonld"
+              ]
+            },
+            "encoding": {
+              "type": "string",
+              "optional": true,
+              "default": "utf-8",
+              "description": "File encoding (utf-8, ascii, etc.)"
+            },
+            "file_type": {
+              "type": "string",
+              "optional": true,
+              "enum": ["jsonld", "json", "markdown", "text", "sql", "binary"],
+              "description": "Explicit file type if extension is missing or to override extension inference"
+            }
+          },
+          "returns": {
+            "success": {
+              "type": "string",
+              "description": "File content as string. For JSON/JSON-LD, may be parsed into object structure."
+            },
+            "error": {
+              "type": "object",
+              "description": "Error response when operation fails",
+              "schema": {"@id": "ex:FileIOErrorResponse"}
+            }
+          },
+          "execution": "via LLM function calling or MCP file_read tool"
+        },
+        "write": {
+          "description": "Write content to a file",
+          "parameters": {
+            "file_path": {
+              "type": "string",
+              "required": true,
+              "description": "Full file path including filename and extension. Extension is required unless tool declares defaultExtension. Supports template variables like {name}, {timestamp}, {productName}",
+              "templateSupport": true,
+              "examples": [
+                "./notes/{noteName}.txt",
+                "./output/{productName}.jsonld",
+                "./data/{timestamp}.json"
+              ]
+            },
+            "content": {
+              "type": "string",
+              "required": true,
+              "description": "Content to write. For JSON/JSON-LD, should be stringified JSON."
+            },
+            "encoding": {
+              "type": "string",
+              "optional": true,
+              "default": "utf-8"
+            },
+            "mode": {
+              "type": "string",
+              "enum": ["overwrite", "append"],
+              "default": "overwrite"
+            },
+            "file_type": {
+              "type": "string",
+              "optional": true,
+              "enum": ["jsonld", "json", "markdown", "text", "sql", "binary"],
+              "description": "Explicit file type if extension is missing or to override extension inference"
+            }
+          },
+          "returns": {
+            "success": {
+              "type": "boolean",
+              "description": "True if write operation succeeded"
+            },
+            "error": {
+              "type": "object",
+              "description": "Error response when operation fails",
+              "schema": {"@id": "ex:FileIOErrorResponse"}
+            }
+          },
+          "execution": "via LLM function calling or MCP file_write tool"
+        },
+        "list": {
+          "description": "List files in a directory",
+          "parameters": {
+            "directory_path": {
+              "type": "string",
+              "required": true
+            }
+          },
+          "returns": {
+            "success": {
+              "type": "array",
+              "items": "string",
+              "description": "List of file/directory names"
+            },
+            "error": {
+              "type": "object",
+              "description": "Error response when operation fails",
+              "schema": {"@id": "ex:FileIOErrorResponse"}
+            }
+          },
+          "execution": "via LLM function calling or MCP file_list tool"
+        }
+      },
+      "errorHandling": {
+        "errorResponseSchema": {
+          "@id": "ex:FileIOErrorResponse",
+          "type": "object",
+          "description": "Standard error response format for file I/O operations",
+          "properties": {
+            "error": {
+              "type": "object",
+              "required": true,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["permission_denied", "file_not_found", "disk_full", "path_restriction_violation", "invalid_path", "directory_not_found", "other"],
+                  "description": "Type of error that occurred"
+                },
+                "operation": {
+                  "type": "string",
+                  "enum": ["read", "write", "list", "delete", "create_directory"],
+                  "description": "Operation that failed"
+                },
+                "file_path": {
+                  "type": "string",
+                  "description": "File or directory path that caused the error"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Human-readable error message"
+                },
+                "recoverable": {
+                  "type": "boolean",
+                  "description": "Whether the error is recoverable (user can fix permissions, try different path, etc.)"
+                },
+                "suggestions": {
+                  "type": "array",
+                  "items": "string",
+                  "description": "Actionable suggestions for resolving the error"
+                }
+              }
+            }
+          }
+        },
+        "errorTypes": {
+          "permission_denied": {
+            "description": "User lacks read/write/execute permission for file or directory",
+            "recoverable": true,
+            "userMessage": "Permission denied: Cannot [operation] '[file_path]'. You do not have [read/write/execute] permission for this file or directory.",
+            "suggestions": [
+              "Check file/directory permissions",
+              "Use a different file or directory",
+              "Contact administrator to adjust permissions"
+            ],
+            "handling": "Inform user clearly, suggest fixes, continue workflow without halting"
+          },
+          "file_not_found": {
+            "description": "File does not exist at specified path",
+            "recoverable": true,
+            "userMessage": "File not found: '[file_path]' does not exist.",
+            "suggestions": [
+              "Check if file path is correct",
+              "Verify file exists in the specified location",
+              "Create the file if it should exist"
+            ],
+            "handling": "Inform user, suggest verification, continue workflow"
+          },
+          "directory_not_found": {
+            "description": "Directory does not exist at specified path",
+            "recoverable": true,
+            "userMessage": "Directory not found: '[directory_path]' does not exist.",
+            "suggestions": [
+              "Check if directory path is correct",
+              "Create the directory if it should exist",
+              "Use a different directory path"
+            ],
+            "handling": "Inform user, suggest creation or alternative path, continue workflow"
+          },
+          "path_restriction_violation": {
+            "description": "Path violates declared security restrictions (outside allowed_directories, contains forbidden_patterns)",
+            "recoverable": true,
+            "userMessage": "Path restriction violation: '[file_path]' is not allowed. Allowed directories: [list]. Forbidden patterns: [list].",
+            "suggestions": [
+              "Use a path within allowed directories",
+              "Avoid forbidden path patterns",
+              "Check tool's path_restrictions configuration"
+            ],
+            "handling": "Reject operation before execution, inform user of restriction, suggest alternative path"
+          },
+          "disk_full": {
+            "description": "No disk space available for write operation",
+            "recoverable": false,
+            "userMessage": "Disk full: Cannot write to '[file_path]'. No disk space available.",
+            "suggestions": [
+              "Free up disk space",
+              "Use a different storage location",
+              "Contact administrator"
+            ],
+            "handling": "Inform user, cannot proceed with write operation, suggest disk space management"
+          },
+          "invalid_path": {
+            "description": "Path is malformed or invalid",
+            "recoverable": true,
+            "userMessage": "Invalid path: '[file_path]' is malformed or invalid.",
+            "suggestions": [
+              "Check path format",
+              "Ensure path uses correct separators",
+              "Verify path does not contain invalid characters"
+            ],
+            "handling": "Reject operation, inform user of invalid path, suggest correction"
+          },
+          "other": {
+            "description": "Unspecified or unexpected error",
+            "recoverable": false,
+            "userMessage": "File operation failed: [operation] on '[file_path]' encountered an error.",
+            "suggestions": [
+              "Try the operation again",
+              "Check system logs for details",
+              "Contact support if error persists"
+            ],
+            "handling": "Inform user of error, log details for debugging, continue workflow if possible"
+          }
+        },
+        "handlingPatterns": {
+          "permissionErrorHandling": {
+            "description": "Pattern for handling permission denied errors",
+            "steps": [
+              "1. Detect permission_denied error type from execution layer response",
+              "2. Format user-friendly error message using errorTypes.permission_denied.userMessage template",
+              "3. Include actionable suggestions from errorTypes.permission_denied.suggestions",
+              "4. Inform user of error but continue workflow (do not halt)",
+              "5. Log error for debugging purposes",
+              "6. Optionally attempt recovery strategy if configured (alternative path, skip operation, etc.)"
+            ],
+            "principle": "Permission errors are recoverable - inform user clearly but continue operation"
+          },
+          "pathRestrictionHandling": {
+            "description": "Pattern for handling path restriction violations",
+            "steps": [
+              "1. Validate path against declared path_restrictions before execution",
+              "2. If path violates restrictions, reject operation immediately (do not attempt execution)",
+              "3. Format user-friendly error message using errorTypes.path_restriction_violation.userMessage template",
+              "4. Include list of allowed_directories and forbidden_patterns in message",
+              "5. Suggest alternative paths within allowed directories",
+              "6. Continue workflow (operation rejected but tool continues)"
+            ],
+            "principle": "Path restrictions are security boundaries - enforce before execution, reject violations"
+          },
+          "generalErrorHandling": {
+            "description": "Pattern for handling all file I/O errors",
+            "steps": [
+              "1. Detect error from execution layer response",
+              "2. Identify error type using errorResponseSchema",
+              "3. Format user-friendly message using appropriate errorTypes template",
+              "4. Include suggestions if error is recoverable",
+              "5. Inform user of error",
+              "6. If recoverable: attempt recovery strategy or ask user for alternative",
+              "7. If not recoverable: log error, inform user, skip operation",
+              "8. Continue workflow (do not halt tool execution)"
+            ],
+            "principle": "All file I/O errors should be handled gracefully - inform user but continue workflow"
+          }
+        },
+        "recoveryStrategies": {
+          "skipOperation": {
+            "description": "Skip the failed operation and continue",
+            "when": "Non-critical file operation fails",
+            "example": "If optional log file cannot be written, skip logging and continue main operation"
+          },
+          "alternativePath": {
+            "description": "Try configured alternative directory or path",
+            "when": "Primary path fails but alternative is configured",
+            "example": "If ./output/ fails, try ./backup/ if configured"
+          },
+          "userEscalation": {
+            "description": "Ask user for permission fix or alternative path",
+            "when": "Recovery requires user action",
+            "example": "Permission denied - ask user: 'Would you like to fix permissions or use a different path?'"
+          },
+          "gracefulDegradation": {
+            "description": "Continue with reduced functionality",
+            "when": "File operation is optional but operation can continue",
+            "example": "Cannot write cache file - continue without caching"
+          }
+        },
+        "userCommunication": {
+          "format": "Natural language error messages",
+          "requirements": [
+            "Clear explanation of what failed",
+            "Specific file/directory path that caused error",
+            "Actionable suggestions for resolution",
+            "Indication of whether error is recoverable",
+            "Assurance that workflow continues"
+          ],
+          "example": "Permission denied: Cannot read './data/config.json'. You do not have read permission for this file. Suggestions: Check file permissions, use a different file, or contact administrator. The tool will continue with other operations."
+        },
+        "integration": {
+          "commonErrorHandling": "File I/O error handling aligns with ex:CommonErrorHandling principle: 'inform user of the error but continue processing - do not halt workflow'",
+          "qualityChecklist": "File I/O error handling should be verified in ex:QualityChecklist.edgeCaseHandling: 'How are file permission errors handled?'"
+        }
+      },
+      "fileTypeHandling": {
+        "extensionRequired": {
+          "default": true,
+          "description": "File extension is required in file_path unless tool declares defaultExtension",
+          "rationale": "Prevents accidental file type mismatches and improves clarity"
+        },
+        "extensionInference": {
+          "enabled": true,
+          "description": "File type inferred from extension when available",
+          "supportedExtensions": [".jsonld", ".json", ".md", ".txt", ".sql"],
+          "note": "Inference helps with validation and proper handling, but explicit file_type can override"
+        },
+        "defaultExtension": {
+          "value": null,
+          "description": "No global default extension. Tools can declare their own defaultExtension if needed.",
+          "rationale": "AALang tools generate various file types - no single default is appropriate"
+        }
+      },
+      "executionModel": {
+        "description": "File I/O operations are executed via LLM function calling capabilities or MCP (Model Context Protocol) tools",
+        "llmNative": "Operations are declared in actor/persona responsibilities, LLM interprets and executes via available tools",
+        "mcpIntegration": "MCP-ready: integrates with Model Context Protocol file system tools",
+        "declarative": "Actors declare file I/O intent in responsibilities, execution handled by LLM runtime"
+      },
+      "security": {
+        "pathRestrictions": "Should be explicitly declared in tool/actor definition",
+        "permissionModel": "Read-only vs read-write permissions should be specified",
+        "sandboxing": "Recommended: restrict file operations to specific directories"
+      }
+    },
+    {
+      "@id": "ex:ToolCapabilities",
+      "@type": "Concept",
+      "rdfs:label": "Tool-Specific Capabilities",
+      "description": "Optional capabilities that can be declared for AALang tools",
+      "capabilities": [
+        {
+          "@id": "ex:FileIOCapability",
+          "description": "File input/output operations",
+          "declaration": "explicitly declared in tool definition when needed",
+          "optional": true
+        }
+      ],
+      "declaration": {
+        "location": "tool definition in JSON-LD prompt",
+        "format": "capability object with enabled flag and configuration",
+        "example": {
+          "file_io": {
+            "enabled": true,
+            "allowed_operations": ["read", "write"],
+            "path_restrictions": {
+              "allowed_directories": ["./data", "./output"],
+              "forbidden_patterns": ["../", "/etc", "/usr"]
+            },
+            "permissions": "read-write"
+          }
+        }
+      },
+      "note": "Not all tools need file I/O. Only declare when tool requires file operations."
     }
   ]
 }

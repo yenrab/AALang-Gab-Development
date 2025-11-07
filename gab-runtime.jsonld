@@ -117,7 +117,7 @@
       "@type": "RuntimeInstruction",
       "purpose": "Instructions for how personas should reference and follow runtime behaviors",
       "appliesTo": ["ex:ClarificationPersona1", "ex:ClarificationPersona2", "ex:DiscussionPersona1", "ex:DiscussionPersona2", "ex:FormalizationPersona1", "ex:FormalizationPersona2", "ex:GenerationPersona1", "ex:GenerationPersona2"],
-      "instruction": "When persona responsibilities reference runtime behaviors (e.g., 'follow ex:CommonRuntimeBehaviors.ex:DebugModeCheck'), personas must: 1. Read the complete behavior definition from gab-runtime.jsonld, 2. Execute all steps in the behavior definition, 3. Follow the behavior exactly as specified, 4. If behavior definition is not available or unclear, use semantic understanding to infer correct behavior from behavior name and context, 5. Runtime behaviors are mandatory - they cannot be skipped or modified.",
+      "instruction": "When persona responsibilities reference runtime behaviors (e.g., 'follow ex:DebugModeCheck'), personas must: 1. Read the complete behavior definition from gab-runtime.jsonld, 2. Execute all steps in the behavior definition, 3. Follow the behavior exactly as specified, 4. If behavior definition is not available or unclear, use semantic understanding to infer correct behavior from behavior name and context, 5. Runtime behaviors are mandatory - they cannot be skipped or modified.",
       "note": "Runtime behaviors are defined once in gab-runtime.jsonld and referenced by all personas. This ensures consistent behavior across all personas while avoiding duplication."
     }
   ]

@@ -68,7 +68,21 @@
         "active_mode": {"type": "mode", "enforcement": "runtime-enforced"},
         "personas": {"type": "array", "optional": true, "pattern": "library"},
         "isolated_context": {"type": "state", "scope": "private"},
-        "shared_artifacts": {"type": "state", "scope": "shared within agent"}
+        "shared_artifacts": {"type": "state", "scope": "shared within agent"},
+        "file_io_capability": {
+          "type": "object",
+          "optional": true,
+          "description": "File I/O capability declaration for this actor",
+          "properties": {
+            "enabled": {"type": "boolean", "description": "whether file I/O is enabled for this actor"},
+            "allowed_operations": {"type": "array", "items": {"enum": ["read", "write", "list", "delete", "create_directory"]}},
+            "path_restrictions": {"type": "object", "description": "allowed/disallowed paths"},
+            "permissions": {"type": "object", "description": "read-only vs read-write permissions"}
+          },
+          "reference": "See aalang-design.jsonld ex:Actor.properties.file_io_capability for complete definition"
+        },
+        "prohibitions": {"type": "array", "optional": true, "pattern": "ex:ProhibitionPattern", "description": "Structured prohibitions with severity levels - see ex:ProhibitionPattern for structure definition"},
+        "requirements": {"type": "array", "optional": true, "pattern": "ex:RequirementPattern", "description": "Structured requirements with severity levels - see ex:RequirementPattern for structure definition"}
       },
       "containedBy": {"@id": "ex:LLMAgent"},
       "contains": [
@@ -86,7 +100,9 @@
         "constraints": {"type": "rules", "source": "declared in prompt"},
         "transition_rules": {"type": "rules", "enforcement": "runtime-enforced"},
         "message_interpretation": {"type": "rules", "scope": "mode-specific"},
-        "bounded_non_determinism": {"type": "scope", "description": "acceptable variance boundaries"}
+        "bounded_non_determinism": {"type": "scope", "description": "acceptable variance boundaries"},
+        "prohibitions": {"type": "array", "optional": true, "pattern": "ex:ProhibitionPattern", "description": "Structured prohibitions with severity levels - see ex:ProhibitionPattern for structure definition"},
+        "requirements": {"type": "array", "optional": true, "pattern": "ex:RequirementPattern", "description": "Structured requirements with severity levels - see ex:RequirementPattern for structure definition"}
       },
       "transition": {
         "validation": "runtime-enforced",
@@ -104,14 +120,19 @@
       "implementation": "optional library pattern",
       "properties": {
         "id": {"type": "string", "scope": "within actor"},
+        "name": {"type": "string", "description": "human-readable persona name", "reference": "See aalang-design.jsonld ex:Persona.properties.name for complete definition"},
         "role": {"type": "string", "example": ["senior", "junior"], "source": "declared in prompt"},
+        "personality": {"type": "string", "description": "persona behavioral characteristics", "reference": "See aalang-design.jsonld ex:Persona.properties.personality for complete definition"},
+        "responsibilities": {"type": "array", "description": "persona responsibilities", "reference": "See aalang-design.jsonld ex:Persona.properties.responsibilities for complete definition"},
         "communication_matrix": {
           "type": "matrix",
           "description": "which personas can message which",
           "source": "explicit declaration in prompt",
           "discovery": "all personas know matrix at instantiation"
         },
-        "deliberation_protocol": {"type": "protocol", "pattern": "negotiation"}
+        "deliberation_protocol": {"type": "protocol", "pattern": "negotiation"},
+        "prohibitions": {"type": "array", "optional": true, "pattern": "ex:ProhibitionPattern", "description": "Structured prohibitions with severity levels - see ex:ProhibitionPattern for structure definition"},
+        "requirements": {"type": "array", "optional": true, "pattern": "ex:RequirementPattern", "description": "Structured requirements with severity levels - see ex:RequirementPattern for structure definition"}
       },
       "containedBy": {"@id": "ex:Actor"},
       "communication": {
@@ -347,6 +368,208 @@
       },
       "note": "This protocol prevents state corruption from concurrent updates. First-write-wins ensures deterministic state. User overrides allow manual correction when needed.",
       "reference": "See ex:StateMessageProtocol in message-protocol.jsonld for state update message format."
+    },
+    {
+      "@id": "ex:CrossFileNodeReference",
+      "@type": "Protocol",
+      "purpose": "Specification for how to correctly reference nodes defined in other JSON-LD files",
+      "principle": "Each node with an @id is an independent entity. References must use the node's @id directly, not dot notation.",
+      "correctFormat": {
+        "description": "Reference nodes by their @id value directly",
+        "format": "ex:NodeId",
+        "example": "ex:DebugModeCheck",
+        "note": "The @id uniquely identifies the node across all files in the specification"
+      },
+      "incorrectFormat": {
+        "description": "DO NOT use dot notation to reference nodes",
+        "incorrectExample": "ex:CommonRuntimeBehaviors.ex:DebugModeCheck",
+        "whyIncorrect": "Dot notation implies nested properties, but nodes with @id are independent entities, not nested within parent nodes",
+        "correctAlternative": "ex:DebugModeCheck"
+      },
+      "rules": [
+        "1. Each node with an @id is an independent entity in the graph",
+        "2. To reference a node, use its @id value directly: ex:NodeId",
+        "3. DO NOT use dot notation (ex:ParentNode.ex:ChildNode) - this is incorrect",
+        "4. Even if a node appears nested in JSON structure, if it has its own @id, reference it directly",
+        "5. Nested properties (without @id) can be accessed with dot notation, but nodes with @id cannot",
+        "6. When referencing nodes across files, use the same @id format: ex:NodeId"
+      ],
+      "examples": {
+        "correct": [
+          "ex:DebugModeCheck (references the node with @id 'ex:DebugModeCheck')",
+          "ex:ProductNameIdentification (references the node with @id 'ex:ProductNameIdentification')",
+          "ex:GenerationReadinessCheck (references the node with @id 'ex:GenerationReadinessCheck')",
+          "ex:StateMessageProtocol (references the node with @id 'ex:StateMessageProtocol')"
+        ],
+        "incorrect": [
+          "ex:CommonRuntimeBehaviors.ex:DebugModeCheck (WRONG - DebugModeCheck is an independent node)",
+          "ex:GenerationModeRuntimeBehaviors.ex:GenerationReadinessCheck (WRONG - GenerationReadinessCheck is an independent node)",
+          "ex:StateMessageProtocol.stateResponseMessage (WRONG if stateResponseMessage has its own @id)"
+        ],
+        "nestedProperties": {
+          "description": "Nested properties without @id can use dot notation",
+          "example": "ex:OutputFormat.workOutput.debugMode (correct if workOutput and debugMode are properties, not nodes with @id)",
+          "note": "This is only correct when accessing nested properties that are NOT independent nodes"
+        }
+      },
+      "crossFileReferences": {
+        "description": "When referencing nodes in other specification files",
+        "format": "ex:NodeId (see filename.jsonld - read complete definition)",
+        "example": "ex:DebugModeCheck (see gab-runtime.jsonld - read complete behavior definition and execute all steps)",
+        "note": "The file reference helps locate the definition, but the node reference uses the @id directly"
+      },
+      "enforcement": {
+        "validation": "All node references must use direct @id format, not dot notation",
+        "exception": "Nested properties without @id can use dot notation for property access",
+        "check": "If a reference uses dot notation with an ex: prefix after the dot, verify if the second part has its own @id. If it does, the reference is incorrect."
+      },
+      "note": "This protocol ensures consistent and correct node referencing across all AALang and GAB specification files. Dot notation bugs occur when nodes with independent @id values are incorrectly referenced as if they were nested properties."
+    },
+    {
+      "@id": "ex:ProhibitionPattern",
+      "@type": "Pattern",
+      "rdfs:label": "Prohibition Pattern",
+      "purpose": "Optional pattern for defining structured prohibitions with severity levels",
+      "description": "A structured way to define explicit prohibitions for actors, modes, personas, or any node with responsibilities or constraints. This pattern provides clear visibility and programmatic validation of forbidden actions.",
+      "optional": true,
+      "appliesTo": ["ex:Persona", "ex:Mode", "ex:Actor", "ex:LLMAgent", "any node with responsibilities or constraints"],
+      "structure": {
+        "severity": {
+          "type": "enum",
+          "values": ["absolute", "critical", "standard"],
+          "description": "Severity level of the prohibition",
+          "definitions": {
+            "absolute": "Hard rule with no exceptions - must never be violated under any circumstances",
+            "critical": "Critical rule that should not be violated - may have rare exceptions with explicit authorization",
+            "standard": "Standard rule that should generally be followed - may have reasonable exceptions"
+          }
+        },
+        "action": {
+          "type": "string",
+          "description": "Brief description of the forbidden action",
+          "example": "Include ex:CopyrightNotice node in generated products"
+        },
+        "details": {
+          "type": "string",
+          "description": "Full explanation of the prohibition, including rationale and specific requirements",
+          "example": "When generating ANY product, tool, or file (including .jsonld files), NEVER include the ex:CopyrightNotice node..."
+        },
+        "appliesTo": {
+          "type": "array",
+          "description": "Contexts, scenarios, or operations where this prohibition applies",
+          "example": ["all generated files", ".jsonld files", "mode transition", "workflow progression"]
+        }
+      },
+      "usage": {
+        "whenToUse": [
+          "When defining explicit prohibitions that need clear visibility",
+          "When prohibitions have different severity levels that need classification",
+          "When prohibitions need to be programmatically validated or checked",
+          "When prohibitions apply to specific contexts that should be documented"
+        ],
+        "whenNotToUse": [
+          "Simple constraints that are better expressed in constraints arrays",
+          "General guidelines that don't need structured format",
+          "Positive requirements (use responsibilities or requirements instead)"
+        ]
+      },
+      "relationshipToConstraints": {
+        "description": "Prohibitions complement but do not replace constraints. Constraints define what should be done, prohibitions define what must not be done.",
+        "constraints": "Define behavioral rules, requirements, and expectations",
+        "prohibitions": "Define explicit forbidden actions with severity classification",
+        "both": "Can be used together - constraints define positive requirements, prohibitions define negative requirements"
+      },
+      "example": {
+        "node": "ex:GenerationPersona1",
+        "prohibitions": [
+          {
+            "severity": "absolute",
+            "action": "Include ex:CopyrightNotice node in generated products",
+            "details": "When generating ANY product, tool, or file (including .jsonld files), NEVER include the ex:CopyrightNotice node, copyright text, license text, or ANY portion of the AALang/Gab license...",
+            "appliesTo": ["all generated files", ".jsonld files", "markdown files", "build logs", "debug logs"]
+          },
+          {
+            "severity": "critical",
+            "action": "Skip Generation Mode or generate without readiness check",
+            "details": "Generation Mode can NEVER be skipped, even by user (Team Lead). There is NO override for skipping Generation Mode...",
+            "appliesTo": ["generation workflow", "all product file generation"]
+          }
+        ]
+      },
+      "note": "This pattern is optional. Agents can define prohibitions using this structured format for clarity and validation, or use simpler constraint-based approaches. The pattern provides a standardized way to express prohibitions with severity levels across all AALang agents."
+    },
+    {
+      "@id": "ex:RequirementPattern",
+      "@type": "Pattern",
+      "rdfs:label": "Requirement Pattern",
+      "purpose": "Optional pattern for defining structured requirements with severity levels",
+      "description": "A structured way to define explicit requirements for actors, modes, personas, or any node with responsibilities or constraints. This pattern provides clear visibility and programmatic validation of mandatory actions.",
+      "optional": true,
+      "appliesTo": ["ex:Persona", "ex:Mode", "ex:Actor", "ex:LLMAgent", "any node with responsibilities or constraints"],
+      "structure": {
+        "severity": {
+          "type": "enum",
+          "values": ["absolute", "critical", "standard"],
+          "description": "Severity level of the requirement",
+          "definitions": {
+            "absolute": "Hard requirement with no exceptions - must always be fulfilled under any circumstances",
+            "critical": "Critical requirement that should always be fulfilled - may have rare exceptions with explicit authorization",
+            "standard": "Standard requirement that should generally be fulfilled - may have reasonable exceptions"
+          }
+        },
+        "action": {
+          "type": "string",
+          "description": "Brief description of the required action",
+          "example": "Include attribution statement in all generated products"
+        },
+        "details": {
+          "type": "string",
+          "description": "Full explanation of the requirement, including rationale and specific implementation details",
+          "example": "MANDATORY: All generated products (prompts, agents, protocols, tools, etc.) MUST include the attribution text 'Created using AALang and Gab'..."
+        },
+        "appliesTo": {
+          "type": "array",
+          "description": "Contexts, scenarios, or operations where this requirement applies",
+          "example": ["all generated products", "prompts", "agents", "tools", "mode transition", "workflow progression"]
+        }
+      },
+      "usage": {
+        "whenToUse": [
+          "When defining explicit requirements that need clear visibility",
+          "When requirements have different severity levels that need classification",
+          "When requirements need to be programmatically validated or checked",
+          "When requirements apply to specific contexts that should be documented"
+        ],
+        "whenNotToUse": [
+          "Simple constraints that are better expressed in constraints arrays",
+          "General guidelines that don't need structured format",
+          "Negative requirements (use prohibitions instead)"
+        ]
+      },
+      "relationshipToConstraints": {
+        "description": "Requirements complement but do not replace constraints. Constraints define general behavioral rules, requirements define specific mandatory actions.",
+        "constraints": "Define general behavioral rules, expectations, and boundaries",
+        "requirements": "Define explicit mandatory actions with severity classification",
+        "both": "Can be used together - constraints define general rules, requirements define specific mandatory actions"
+      },
+      "relationshipToProhibitions": {
+        "description": "Requirements and prohibitions are complementary. Requirements define what must be done, prohibitions define what must not be done.",
+        "requirements": "Define positive mandatory actions (what must be done)",
+        "prohibitions": "Define negative mandatory actions (what must not be done)",
+        "both": "Can be used together - requirements define positive requirements, prohibitions define negative requirements"
+      },
+      "example": {
+        "node": "ex:GenerationMode",
+        "requirements": [
+          {
+            "severity": "critical",
+            "action": "Include attribution statement in all generated products",
+            "details": "MANDATORY: All generated products (prompts, agents, protocols, tools, etc.) MUST include the attribution text 'Created using AALang and Gab' at the end of the first text the user sees...",
+            "appliesTo": ["all generated products", "prompts", "agents", "protocols", "tools", "any AALang product"]
+          }
+        ]
+      },
+      "note": "This pattern is optional. Agents can define requirements using this structured format for clarity and validation, or use simpler constraint-based approaches. The pattern provides a standardized way to express requirements with severity levels across all AALang agents."
     }
   ]
 }

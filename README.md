@@ -4,9 +4,11 @@
 
 ## What is AALang?
 
-**AALang** (Actor-based Agent Language) is a programming language designed specifically for LLM agent consumption and execution. It's optimized for graph-native, LLM-friendly development and supports bounded non-determinism. AALang is **MCP (Model Context Protocol) ready**, making it perfect for integration with modern LLM tooling.
+**AALang** (Actor-based Agent Language) is a programming language designed specifically for LLM agent consumption and execution. It's optimized for graph-native, LLM-friendly development and supports bounded non-determinism. AALang is **MCP (Model Context Protocol) and A2A (Agent to Agent) ready**, making it perfect for integration with modern LLM tooling and distributed agent systems.
 
 **Is AALang Turing complete?** See the [arguments and analysis](turing-complete.md).
+
+**Is AALang truly concurrent, or just pretending?** Explore the [concurrency and parallelism analysis](concurrent-parallel.md).
 
 Learn more at: **[https://aalang.org](https://aalang.org)**
 
@@ -25,6 +27,7 @@ Learn more at: **[https://aalang.org](https://aalang.org)**
 
 - **AALang Website**: [https://aalang.org](https://aalang.org)
 - **Turing Completeness Analysis**: [Is AALang probabilistically Turing complete?](turing-complete.md) - Deep dive into AALang's computational capabilities
+- **Concurrency and Parallelism Analysis**: [Is AALang truly concurrent, or just pretending?](concurrent-parallel.md) - Examination of AALang's concurrent/parallel architecture
 - **Documentation**: See the specification files for detailed technical information
 
 ## How GAB Works
@@ -139,7 +142,7 @@ Once GAB generates your AALang specification:
 2. **Execute**: The LLM interprets and executes the AALang code
 3. **Interact**: Use the product as designed
 
-AALang specifications are **MCP ready**, meaning they integrate seamlessly with Model Context Protocol tooling for enhanced LLM interactions.
+AALang specifications are **MCP and A2A ready**, meaning they integrate seamlessly with Model Context Protocol tooling for enhanced LLM interactions and support native Agent-to-Agent communication via gossip-based P2P protocols for distributed execution.
 
 ## User Commands
 
@@ -167,6 +170,7 @@ AALang-Gab-Development/
 ├── agent-to-actor.jsonld   # Agent-to-actor communication protocols
 ├── message-protocol.jsonld # Message and state management protocols
 ├── turing-complete.md      # Analysis of AALang's probabilistic Turing completeness
+├── concurrent-parallel.md # Analysis of AALang's concurrency and parallelism
 ├── LICENSE                 # License information
 └── README.md               # This file
 ```
@@ -177,7 +181,7 @@ AALang-Gab-Development/
 - **Quality Assurance**: Built-in checks for logic errors, edge cases, and AALang compliance
 - **Decision Tracking**: All decisions are logged for review and rollback
 - **Persona-Based Design**: Multiple personas provide diverse perspectives
-- **MCP Ready**: Generated products work seamlessly with Model Context Protocol
+- **MCP & A2A Ready**: Generated products work seamlessly with Model Context Protocol and support Agent-to-Agent communication for distributed execution
 - **Flexible**: Build games, tools, agents, protocols, and more
 
 ## License

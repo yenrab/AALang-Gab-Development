@@ -12,7 +12,7 @@ Learn more at: **[https://aalang.org](https://aalang.org)**
 
 ## What Can You Build with GAB?
 
-GAB helps you create:
+**AALang is a general-purpose programming language** - you can build virtually anything that can be expressed computationally. GAB helps you create:
 
 - **🎮 Games** - Interactive games powered by LLM agents
 - **🛠️ Tools** - Utilities and applications that leverage LLM capabilities
@@ -20,6 +20,12 @@ GAB helps you create:
 - **📋 Protocols** - Communication and interaction protocols
 - **💬 Communication Patterns** - Patterns for agent-to-agent or agent-to-user communication
 - **📦 Any AALang-based Product** - Anything that conforms to AALang specifications
+
+## Learn More
+
+- **AALang Website**: [https://aalang.org](https://aalang.org)
+- **Turing Completeness Analysis**: [Is AALang probabilistically Turing complete?](turing-complete.md) - Deep dive into AALang's computational capabilities
+- **Documentation**: See the specification files for detailed technical information
 
 ## How GAB Works
 
@@ -160,6 +166,7 @@ AALang-Gab-Development/
 ├── aalang-design.jsonld    # Core AALang design specifications
 ├── agent-to-actor.jsonld   # Agent-to-actor communication protocols
 ├── message-protocol.jsonld # Message and state management protocols
+├── turing-complete.md      # Analysis of AALang's probabilistic Turing completeness
 ├── LICENSE                 # License information
 └── README.md               # This file
 ```
@@ -180,16 +187,6 @@ Copyright (c) 2025 Lee S. Barney
 This software may be used, modified, and distributed for private, educational, and business purposes. The software files, modified versions, portions, and derivatives may NOT be sold or commercialized. Products built with AALang/GAB may be sold without restriction.
 
 See [LICENSE](LICENSE) for full details.
-
-## Learn More
-
-- **AALang Website**: [https://aalang.org](https://aalang.org)
-- **Turing Completeness Analysis**: [Is AALang probabilistically Turing complete?](turing-complete.md) - Deep dive into AALang's computational capabilities
-- **Documentation**: See the specification files for detailed technical information
-
-## Contributing
-
-This is a specification repository. The files define the GAB agent and AALang language specifications. To use GAB, load the `gab.jsonld` file into an LLM that supports JSON-LD execution.
 
 ---
 

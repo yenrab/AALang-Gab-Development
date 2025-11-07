@@ -70,7 +70,7 @@ GAB uses a **4-mode-13-actor** pattern with a structured workflow:
 
 ### Using GAB
 
-1. **Load GAB**: Load the `gab.jsonld` file into your LLM environment
+1. **Load GAB**: Add the `*.jsonld` files into your LLM environment. The `*gab.jsonld*` file is the instruction file, the others are data files it needs. If you are in a tool like cursor, drag `*gab.jsonld*` into an empty chat and hit enter. If you are a standard LLM tool like gemini or ChatGPT, add all the files to a chat and indicate that `*gab.jsonld*` is the execution instructions. Gab works best in cursor-like tools.
 2. **Describe Your Idea**: Tell GAB what you want to build
 3. **Follow the Workflow**: GAB will guide you through Clarification → Discussion → Formalization → Generation
 4. **Get Your Product**: Receive a complete AALang specification ready to use

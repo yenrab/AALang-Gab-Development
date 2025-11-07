@@ -6,6 +6,8 @@
 
 **AALang** (Actor-based Agent Language) is a programming language designed specifically for LLM agent consumption and execution. It's optimized for graph-native, LLM-friendly development and supports bounded non-determinism. AALang is **MCP (Model Context Protocol) ready**, making it perfect for integration with modern LLM tooling.
 
+**Is AALang Turing complete?** See the [arguments and analysis](turing-complete.md).
+
 Learn more at: **[https://aalang.org](https://aalang.org)**
 
 ## What Can You Build with GAB?
@@ -182,6 +184,7 @@ See [LICENSE](LICENSE) for full details.
 ## Learn More
 
 - **AALang Website**: [https://aalang.org](https://aalang.org)
+- **Turing Completeness Analysis**: [Is AALang probabilistically Turing complete?](turing-complete.md) - Deep dive into AALang's computational capabilities
 - **Documentation**: See the specification files for detailed technical information
 
 ## Contributing

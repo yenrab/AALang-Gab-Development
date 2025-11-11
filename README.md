@@ -93,6 +93,8 @@ GAB uses a **4-mode-13-actor** pattern with a structured workflow:
 - Implements all designed components
 - Produces ready-to-use AALang code
 
+**After Generation**: Once GAB generates your initial product, follow the [GAB Development Workflow](gab-development-workflow.md) to refine and test your product. This workflow guides you through actor self-checks, non-actor validation, and system-level testing to ensure your product is stable and production-ready.
+
 ## Getting Started
 
 ### Prerequisites

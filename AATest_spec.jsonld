@@ -1,0 +1,239 @@
+{
+  "@context": {
+    "@vocab": "https://aalang.org/spec",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "ex": "https://aalang.org/example/"
+  },
+  "@graph": [
+    {
+      "@id": "ex:TestSpecification",
+      "@type": "TestSpec",
+      "rdfs:label": "AALang Test Specification",
+      "description": "Complete specification for AALang test structures including unit, integration, and system tests",
+      "testTypes": ["UnitTest", "IntegrationTest", "SystemTest"],
+      "testStructure": {
+        "metadata": {
+          "name": {
+            "type": "string",
+            "required": true,
+            "description": "Test name identifier"
+          },
+          "description": {
+            "type": "string",
+            "required": true,
+            "description": "Test description explaining what is being tested"
+          },
+          "type": {
+            "type": "enum",
+            "required": true,
+            "values": ["UnitTest", "IntegrationTest", "SystemTest"],
+            "description": "Test type classification"
+          },
+          "priority": {
+            "type": "number",
+            "optional": true,
+            "description": "Test priority for execution order"
+          }
+        },
+        "setup": {
+          "type": "string",
+          "optional": true,
+          "description": "Optional setup instructions executed before test"
+        },
+        "teardown": {
+          "type": "string",
+          "optional": true,
+          "description": "Optional teardown instructions executed after test"
+        },
+        "inputs": {
+          "type": "object",
+          "description": "Test input definitions",
+          "properties": {
+            "testInput": "any",
+            "description": "Input data or configuration for the test"
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "description": "Expected output definitions",
+          "properties": {
+            "expectedOutput": "any",
+            "description": "Expected result or behavior from the test"
+          }
+        },
+        "assertions": {
+          "types": [
+            {
+              "type": "contains",
+              "description": "Checks if output contains specific text/pattern",
+              "llmFriendly": true
+            },
+            {
+              "type": "isLike",
+              "description": "Semantic similarity check using LLM understanding",
+              "llmFriendly": true
+            },
+            {
+              "type": "boundedDeviation",
+              "description": "Allows variance within user-defined bounds for non-deterministic checks",
+              "llmFriendly": true,
+              "deviationBounds": "user-defined bounds (e.g., semantic similarity threshold)"
+            },
+            {
+              "type": "matchesPattern",
+              "description": "Pattern/regex matching (e.g., message format, structure)",
+              "llmFriendly": true
+            },
+            {
+              "type": "hasStructure",
+              "description": "Verifies structural elements (JSON-LD nodes, graph structure, required properties)",
+              "llmFriendly": true
+            },
+            {
+              "type": "followsSequence",
+              "description": "Verifies actions/events occur in expected order",
+              "llmFriendly": true
+            },
+            {
+              "type": "satisfiesConstraint",
+              "description": "Logical constraint checks (e.g., 'response must be non-empty', 'count must be positive')",
+              "llmFriendly": true
+            },
+            {
+              "type": "withinRange",
+              "description": "Numeric range checks (e.g., confidence scores, counts)",
+              "llmFriendly": true
+            },
+            {
+              "type": "hasProperty",
+              "description": "Presence of specific properties/attributes (e.g., actor has required properties)",
+              "llmFriendly": true
+            },
+            {
+              "type": "excludes",
+              "description": "Ensures something is not present (e.g., no error messages, no prohibited actions)",
+              "llmFriendly": true
+            },
+            {
+              "type": "semanticEquivalence",
+              "description": "Semantic equivalence check (e.g., two messages mean the same thing)",
+              "llmFriendly": true
+            },
+            {
+              "type": "completeness",
+              "description": "All required elements present (e.g., all actors defined, all modes have actors)",
+              "llmFriendly": true
+            },
+            {
+              "type": "consistency",
+              "description": "Behavior consistency across runs (useful for bounded non-determinism)",
+              "llmFriendly": true
+            },
+            {
+              "type": "modeTransition",
+              "description": "AALang-specific: mode transitions occur correctly",
+              "llmFriendly": true
+            },
+            {
+              "type": "actorBehavior",
+              "description": "AALang-specific: actor behaves according to responsibilities",
+              "llmFriendly": true
+            },
+            {
+              "type": "messageFormat",
+              "description": "AALang-specific: messages follow AALang message format",
+              "llmFriendly": true
+            },
+            {
+              "type": "stateConsistency",
+              "description": "State consistency before/after operations",
+              "llmFriendly": true
+            }
+          ],
+          "deviationBounds": {
+            "type": "object",
+            "optional": true,
+            "description": "User-defined bounds for non-deterministic checks",
+            "properties": {
+              "semanticSimilarityThreshold": "number between 0.0 and 1.0",
+              "numericVariance": "number or percentage",
+              "description": "Specific bounds for boundedDeviation and consistency assertions"
+            }
+          }
+        },
+        "fixtures": {
+          "type": "array",
+          "optional": true,
+          "description": "Test fixture/mock definitions",
+          "mockActors": {
+            "pattern": "actor id must contain '_aamock'",
+            "description": "Mock actors defined in test files have '_aamock' in their id property. MockManagerActor_aamock manages these mocks during test execution."
+          },
+          "items": {
+            "type": "object",
+            "properties": {
+              "mockActorId": "string containing '_aamock'",
+              "mockBehavior": "description of mock behavior",
+              "mockResponses": "array of mock response definitions"
+            }
+          }
+        },
+        "parameterized": {
+          "type": "object",
+          "optional": true,
+          "description": "Support for parameterized tests",
+          "parameters": {
+            "type": "array",
+            "description": "Array of parameter definitions",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": "parameter name",
+                "values": "array of parameter values to test"
+              }
+            }
+          }
+        },
+        "suites": {
+          "type": "object",
+          "optional": true,
+          "description": "Test suite/group definitions",
+          "groups": {
+            "type": "array",
+            "description": "Array of test group definitions",
+            "items": {
+              "type": "object",
+              "properties": {
+                "suiteName": "test suite name",
+                "tests": "array of test identifiers in this suite"
+              }
+            }
+          }
+        }
+      },
+      "testFileOrganization": {
+        "location": "tests/ subdirectory by default (user-configurable)",
+        "naming": {
+          "unitTests": "{product-name}-unit-tests.jsonld",
+          "integrationTests": "{product-name}-integration-tests.jsonld",
+          "systemTests": "{product-name}-system-tests.jsonld"
+        }
+      },
+      "testExecution": {
+        "sequential": "default execution mode",
+        "parallel": "optional parallel execution",
+        "filtering": "support filtering by test type",
+        "debugging": "support single-test execution and verbose output",
+        "mocking": "auto-generate basic mocks, allow manual override in test files"
+      },
+      "testResults": {
+        "file": "tests/{product-name}-test-results.md",
+        "includes": ["pass/fail status", "detailed execution logs", "summary statistics"],
+        "excludes": ["execution time"],
+        "output": "both console and file"
+      }
+    }
+  ]
+}
+

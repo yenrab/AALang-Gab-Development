@@ -23,13 +23,17 @@
 
 **GAB** (Generic AALang Builder) is an intelligent agent compiler that helps you build AALang-based products including tools, games, agents, protocols, and more. GAB uses a structured 4-mode workflow to guide you through the entire development process, from initial concept to final product compiled to AALang.
 
+**Is GAB really a compiler?** See the [comprehensive argument](README_support_docs/is-gab-a-compiler.md) addressing this question.
+
 ## What is AALang?
 
 **AALang** (Actor-based Agent Language) is a programming language designed specifically for LLM agent consumption and execution. It's optimized for graph-native, LLM-friendly development and supports bounded non-determinism. AALang is **MCP (Model Context Protocol) and A2A (Agent to Agent) ready**, making it perfect for integration with modern LLM tooling and distributed agent systems.
 
-**Is AALang Turing complete?** See the [arguments and analysis](turing-complete.md).
+**Is AALang Turing complete?** See the [arguments and analysis](README_support_docs/turing-complete.md).
 
-**Is AALang truly concurrent, or just pretending?** Explore the [concurrency and parallelism analysis](concurrent-parallel.md).
+**Is AALang truly concurrent, or just pretending?** Explore the [concurrency and parallelism analysis](README_support_docs/concurrent-parallel.md).
+
+**Is AALang really a programming language?** Read the [comprehensive argument](README_support_docs/is-aalang-a-language.md) addressing this question.
 
 Learn more at: **[https://aalang.org](https://aalang.org)**
 
@@ -137,18 +141,20 @@ When you describe your product to GAB, it automatically:
 
 Follow these best practices guides to build stable, production-ready GAB products that require fewer modifications and bug fixes:
 
-- **🎮 [Game Creation Best Practices](game-creation-best-practices.md)** 🚧 - Best practices for creating interactive games with GAB
-- **🛠️ [Tool Creation Best Practices](tool-creation-best-practices.md)** 🚧 - Best practices for building tools and utilities with GAB
-- **🤖 [Agent Creation Best Practices](agent-creation-best-practices.md)** - Best practices for creating custom LLM agents with GAB
-- **📋 [Protocol Creation Best Practices](protocol-creation-best-practices.md)** 🚧 - Best practices for designing communication and interaction protocols
-- **💬 [Communication Pattern Creation Best Practices](communication-pattern-creation-best-practices.md)** 🚧 - Best practices for creating agent-to-agent and agent-to-user communication patterns
-- **📦 [AALang Product Creation Best Practices](aalang-product-creation-best-practices.md)** 🚧 - General best practices for any AALang-based product
+- **🎮 [Game Creation Best Practices](README_support_docs/game-creation-best-practices.md)** 🚧 - Best practices for creating interactive games with GAB
+- **🛠️ [Tool Creation Best Practices](README_support_docs/tool-creation-best-practices.md)** 🚧 - Best practices for building tools and utilities with GAB
+- **🤖 [Agent Creation Best Practices](README_support_docs/agent-creation-best-practices.md)** - Best practices for creating custom LLM agents with GAB
+- **📋 [Protocol Creation Best Practices](README_support_docs/protocol-creation-best-practices.md)** 🚧 - Best practices for designing communication and interaction protocols
+- **💬 [Communication Pattern Creation Best Practices](README_support_docs/communication-pattern-creation-best-practices.md)** 🚧 - Best practices for creating agent-to-agent and agent-to-user communication patterns
+- **📦 [AALang Product Creation Best Practices](README_support_docs/aalang-product-creation-best-practices.md)** 🚧 - General best practices for any AALang-based product
 
 ## Learn More
 
 - **AALang Website**: [https://aalang.org](https://aalang.org)
-- **Turing Completeness Analysis**: [Is AALang probabilistically Turing complete?](turing-complete.md) - Deep dive into AALang's computational capabilities
-- **Concurrency and Parallelism Analysis**: [Is AALang truly concurrent, or just pretending?](concurrent-parallel.md) - Examination of AALang's concurrent/parallel architecture
+- **Turing Completeness Analysis**: [Is AALang probabilistically Turing complete?](README_support_docs/turing-complete.md) - Deep dive into AALang's computational capabilities
+- **Concurrency and Parallelism Analysis**: [Is AALang truly concurrent, or just pretending?](README_support_docs/concurrent-parallel.md) - Examination of AALang's concurrent/parallel architecture
+- **Language Status**: [Is AALang really a programming language?](README_support_docs/is-aalang-a-language.md) - Comprehensive argument addressing language classification
+- **Compiler Status**: [Is GAB really a compiler?](README_support_docs/is-gab-a-compiler.md) - Comprehensive argument addressing compiler classification
 - **Documentation**: See the specification files for detailed technical information
 
 ## How GAB Works
@@ -182,7 +188,7 @@ GAB uses a **4-mode-13-actor** pattern with a structured workflow:
 - Implements all designed components
 - Produces ready-to-use AALang code
 
-**After Generation**: Once GAB generates your initial product, follow the [GAB Development Workflow](gab-development-workflow.md) to refine and test your product. This workflow guides you through actor self-checks, non-actor validation, and system-level testing to ensure your product is stable and production-ready.
+**After Generation**: Once GAB generates your initial product, follow the [GAB Development Workflow](README_support_docs/gab-development-workflow.md) to refine and test your product. This workflow guides you through actor self-checks, non-actor validation, and system-level testing to ensure your product is stable and production-ready.
 
 ## Getting Started
 
@@ -358,8 +364,10 @@ AALang-Gab-Development/
 ├── aalang-design.jsonld    # Core AALang design specifications
 ├── agent-to-actor.jsonld   # Agent-to-actor communication protocols
 ├── message-protocol.jsonld # Message and state management protocols
-├── turing-complete.md      # Analysis of AALang's probabilistic Turing completeness
-├── concurrent-parallel.md # Analysis of AALang's concurrency and parallelism
+├── README_support_docs/    # Documentation files referenced by README.md
+│   ├── turing-complete.md      # Analysis of AALang's probabilistic Turing completeness
+│   ├── concurrent-parallel.md # Analysis of AALang's concurrency and parallelism
+│   └── ...                    # Other support documentation files
 ├── LICENSE                 # License information
 └── README.md               # This file
 ```

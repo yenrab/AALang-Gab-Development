@@ -33,6 +33,95 @@
 
 Learn more at: **[https://aalang.org](https://aalang.org)**
 
+## Actors and Personas
+
+**Important**: You don't need to build actors and personas manually. **GAB automatically builds them for you** based on your product description. This section explains what they are and how they work so you can understand what GAB creates and how to effectively describe your product requirements.
+
+Understanding the relationship between **actors** and **personas** helps you work effectively with GAB and understand how your generated AALang products function.
+
+### Actors: The Core Reasoning Units
+
+**Actors** are individual reasoning units within an LLM agent. They are the primary building blocks of AALang's n-mode-m-actor architecture:
+
+- **All actors are stateful** - Each actor maintains its own isolated context and state
+- **Actors operate in modes** - They can switch between different behavioral modes with distinct constraints
+- **Actors communicate via message passing** - They interact with other actors (same agent or different agents) through structured messages
+- **Actors are required** - Every AALang agent must have at least one actor
+
+### Personas: Optional Internal Reasoning Patterns
+
+**Personas** are optional library patterns that actors can employ for internal deliberation:
+
+- **Personas are contained within actors** - They exist as internal reasoning patterns, not as separate entities
+- **Actors choose when to use personas** - Personas are employed selectively when an actor needs structured internal deliberation
+- **Personas enable multi-perspective reasoning** - Multiple personas within an actor can debate, negotiate, and reach consensus before the actor takes action
+- **Personas are optional** - An actor can function perfectly well without personas
+
+### The Relationship
+
+Think of the relationship this way:
+
+- **Actor = The decision-maker** - The actor is the entity that takes actions, maintains state, and operates in modes
+- **Personas = Internal advisors** - Personas are like a "board of advisors" that the actor can consult internally before making decisions
+
+### Important Implementation Consideration
+
+**Note on Practical Implementation Patterns:**
+
+While the AALang specification states that personas are optional, in practice, many implementations use a pattern where:
+
+- **Actors are stateful containers** - Actors maintain state (`stateful: true`) and operate in modes, but may not have `responsibilities`, `canMessage`, or `canReceiveFrom` properties directly defined
+- **Personas provide actionable capabilities** - Personas define the `responsibilities` (what tasks can be accomplished), `canMessage`/`canReceiveFrom` (communication capabilities), and `sessionConsistent` behavior
+- **Actors without personas may be non-functional** - In this implementation pattern, actors without personas cannot communicate or accomplish tasks because they lack the necessary capability definitions
+
+This is a **practical implementation choice**, not a requirement of the AALang specification. The specification allows actors to have responsibilities and communication capabilities directly, or to delegate them to personas. When using GAB or examining existing AALang products, you may find that actors delegate their capabilities to personas, making personas effectively required for functionality even though they're theoretically optional.
+
+**Key Distinction:**
+- **Actor statefulness** (`stateful: true`) - The actor maintains its own isolated context and state
+- **Persona session consistency** (`sessionConsistent: true`) - The persona maintains consistent behavior and capabilities across sessions
+
+**GAB automatically builds actors and personas** based on your product description. You describe what you want to build, and GAB creates the appropriate actors and personas with the right capabilities, responsibilities, and communication patterns.
+
+### When to Use Personas
+
+Personas are particularly useful when:
+
+- **Complex decisions require deliberation** - The actor needs to consider multiple perspectives before acting
+- **Structured negotiation is needed** - Different viewpoints need to be weighed and reconciled
+- **Bounded non-determinism is desired** - Persona-based variance allows for different reasoning paths while staying within acceptable bounds
+- **Internal consensus is important** - The actor should deliberate internally before external actions
+- **Capability delegation pattern** - When implementing a pattern where actors delegate responsibilities and communication to personas (common in GAB-generated products)
+
+### Communication Layers
+
+AALang uses a three-layer communication architecture:
+
+- **Layer 0**: Agent-to-Agent (gossip-based P2P)
+- **Layer 1**: Actor-to-Actor (local graph routing within same agent)
+- **Layer 2**: Persona-to-Persona (internal reasoning within same actor)
+
+Personas communicate at Layer 2, which is the most internal layer. When personas from different actors need to communicate, the communication flows through the actor layer (Layer 1) and potentially the agent layer (Layer 0).
+
+### How GAB Builds Actors and Personas
+
+When you describe your product to GAB, it automatically:
+
+1. **Creates actors** - GAB analyzes your requirements and creates the necessary actors with appropriate modes and state management
+2. **Creates personas** - GAB generates personas with specific responsibilities, communication capabilities, and behavioral characteristics based on your product needs
+3. **Establishes communication patterns** - GAB sets up communication matrices (`canMessage`/`canReceiveFrom`) between personas based on workflow requirements
+4. **Assigns responsibilities** - GAB distributes tasks and capabilities across personas based on your product description
+5. **Configures state management** - GAB sets up actor statefulness and persona session consistency as needed
+
+**What you need to do**: Simply describe your product idea clearly. GAB handles all the technical details of creating actors, personas, modes, and communication patterns.
+
+**What this means for you**: Understanding actors and personas helps you:
+- Describe your product requirements more effectively to GAB
+- Understand the generated AALang product structure
+- Debug and refine your product if needed
+- Appreciate how your product works under the hood
+
+**Remember**: Actors are the fundamental units of computation in AALang. Personas are patterns that enhance an actor's capabilities. GAB automatically creates both based on your product description - you don't need to design them manually.
+
 ## What Can You Build with GAB?
 
 **AALang is a general-purpose programming language** - you can build virtually anything that can be expressed computationally. GAB helps you create:

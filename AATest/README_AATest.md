@@ -267,6 +267,137 @@ AATest supports bounded non-determinism through:
 6. **Use Parameterized Tests**: Test multiple scenarios efficiently
 7. **Review Test Results**: Check detailed logs to understand test failures
 
+## Getting Consistent Test Results
+
+AATest executes within LLM contexts, which means semantic evaluation can naturally vary between runs. To achieve more consistent and reproducible test results, follow these guidelines:
+
+**Note**: AATest provides the framework and assertion types, but achieving consistent results requires you to configure your tests appropriately. The practices below indicate what AATest does automatically versus what requires your input.
+
+### Use Objective Assertions When Possible
+
+**AATest provides**: All assertion types (`contains`, `excludes`, `isLike`, `hasProperty`, `followsSequence`, `modeTransition`, `matchesPattern`, etc.)
+
+**Requires user input**: You must choose which assertion types to use in your test definitions. Prefer objective, measurable assertions over subjective semantic checks:
+
+- **Replace `isLike` with `contains` or `excludes`**: When checking for specific content, use `contains` to verify exact text or patterns are present, or `excludes` to ensure unwanted content is absent
+- **Replace `actorBehavior` with explicit checks**: Instead of relying on semantic evaluation of actor behavior, use specific assertions like `hasProperty`, `followsSequence`, or `modeTransition` to verify concrete behaviors
+- **Use `matchesPattern` for structured validation**: When you need to verify message formats or structured data, `matchesPattern` provides more deterministic results than semantic checks
+
+**Example of user input**:
+```json
+{
+  "observedMessages": [{
+    "assertion": "contains",
+    "value": "status: success"
+  }]
+}
+```
+Instead of:
+```json
+{
+  "observedMessages": [{
+    "assertion": "isLike",
+    "value": "actor responded successfully"
+  }]
+}
+```
+
+### Define Explicit Pass/Fail Criteria
+
+**AATest provides**: Test execution framework that evaluates assertions and reports results
+
+**Requires user input**: You must write clear test descriptions and define precise expected outputs. Make your test expectations clear and measurable:
+
+- **Document explicit criteria in test descriptions**: Clearly state what constitutes a pass or fail in the test description
+- **Specify expected outputs precisely**: Define exactly what messages, state changes, or behaviors should occur
+- **Include verification steps**: Add explicit verification steps for state isolation, access control, and other critical behaviors
+
+**Example of user input**:
+```json
+{
+  "name": "test_user_authentication",
+  "description": "Test verifies that actor accepts valid credentials and rejects invalid ones. Pass criteria: (1) Valid credentials return message with 'authenticated: true', (2) Invalid credentials return message with 'authenticated: false', (3) No state changes occur for invalid credentials",
+  "observedMessages": [{
+    "assertion": "contains",
+    "value": "authenticated: true"
+  }]
+}
+```
+
+### Leverage Bounded Deviation for Semantic Checks
+
+**AATest provides**: Support for `boundedDeviation` assertion type
+
+**Requires user input**: You must configure explicit thresholds and bounds when using semantic checks. When semantic evaluation is necessary, use bounded deviation to control variance:
+
+- **Use `boundedDeviation` with fixed thresholds**: Set explicit similarity thresholds or deviation bounds for semantic checks
+- **Document acceptable variance**: Clearly define what level of variation is acceptable in test descriptions
+- **Combine with objective checks**: Use semantic checks alongside objective assertions to balance flexibility with determinism
+
+**Example of user input**:
+```json
+{
+  "observedMessages": [{
+    "assertion": "boundedDeviation",
+    "value": "user greeting message",
+    "threshold": 0.85,
+    "baseAssertion": "isLike"
+  }]
+}
+```
+Or with explicit bounds:
+```json
+{
+  "observedMessages": [{
+    "assertion": "boundedDeviation",
+    "value": "response time",
+    "min": 100,
+    "max": 500,
+    "unit": "milliseconds"
+  }]
+}
+```
+
+### Document Test Execution Requirements
+
+**AATest provides**: `testContext` field support and test execution framework
+
+**Requires user input**: You must specify initial state, preconditions, and execution requirements. Help ensure consistent execution across runs:
+
+- **Specify test context requirements**: Document any initial state, preconditions, or setup needed in `testContext`
+- **Clarify execution capabilities**: Note any specific LLM capabilities or configurations required for consistent results
+- **Include state isolation verification**: Add explicit checks to verify state isolation and access control when relevant
+
+**Example of user input**:
+```json
+{
+  "name": "test_state_isolation",
+  "testContext": {
+    "initialState": {
+      "userCount": 0,
+      "activeSessions": []
+    },
+    "preconditions": [
+      "No existing user data",
+      "Actor in 'ready' mode"
+    ],
+    "executionRequirements": {
+      "requiresStateIsolation": true,
+      "requiresAccessControl": true
+    }
+  },
+  "observedStateChanges": [{
+    "assertion": "hasProperty",
+    "property": "userCount",
+    "value": 1
+  }]
+}
+```
+
+### Understanding the Core Issue
+
+LLM-based semantic evaluation is inherently variable because language models interpret meaning contextually. To get deterministic results, move from subjective semantic checks to objective, measurable criteria. This doesn't mean avoiding semantic assertions entirely—rather, use them strategically with appropriate bounds and combine them with objective checks for maximum reliability.
+
 ## Integration with GAB
 
 AATest works seamlessly with products created by GAB:

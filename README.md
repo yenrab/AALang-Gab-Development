@@ -39,7 +39,7 @@ Learn more at: **[https://aalang.org](https://aalang.org)**
 
 ## Tested On
 
-Testing has been conducted using the [babylon 5 fan game](https://github.com/yenrab/fab-fan), which provides a medium to medium-high level of complexity for evaluating AALang capabilities. Direct testing of GAB and AATest is coming soon. Testing on other platforms coming soon.
+Execution capability testing has been conducted using the [babylon 5 fan game](https://github.com/yenrab/fab-fan), which provides a medium to medium-high level of complexity for evaluating AALang capabilities. Direct testing of GAB and AATest is coming soon. Testing on other platforms coming soon.
 
 Works on:
 - Cursor
@@ -286,8 +286,12 @@ GAB: [Formalization Mode]
      "Analyzing the design for issues..."
      
 GAB: [Generation Mode]
-     "Generating your number-guessing-game.jsonld file..."
+     "Generating your AALang product file..."
 ```
+
+**AALang-based .jsonld files with standard startup instructions:**
+- `gab.jsonld` - GAB (Generic AALang Builder) agent
+- `AATest/AATest.jsonld` - AATest (AALang Testing Tool) agent
 
 
 

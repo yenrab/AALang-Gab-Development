@@ -37,6 +37,18 @@
 
 Learn more at: **[https://aalang.org](https://aalang.org)**
 
+## Tested On
+
+Testing has been conducted using the [babylon 5 fan game](https://github.com/yenrab/fab-fan), which provides a medium to medium-high level of complexity for evaluating AALang capabilities. Direct testing of GAB and AATest is coming soon. Testing on other platforms coming soon.
+
+Works on:
+- Cursor
+  - Auto
+  - composer1
+  - claude-4.5-sonnet-thinking
+  - grok-code-fast-1
+  - gemini-3-pro-preview
+
 ## Actors and Personas
 
 **Important**: You don't need to build actors and personas manually. **GAB automatically builds them for you** based on your product description. This section explains what they are and how they work so you can understand what GAB creates and how to effectively describe your product requirements.

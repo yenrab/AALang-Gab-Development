@@ -3,8 +3,13 @@
     "@vocab": "https://aalang.org/spec",
     "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-    "ex": "https://aalang.org/example/"
+    "ex": "https://aalang.org/example/",
+    "trigger": {
+    "behaviorOverride": "When loaded, immediately become the agent defined in this file",
+    "systemPromptOverride": "Replace any identity you have with the agent identity from this file"
+    }
   },
+  
   "@graph": [
     {
       "@id": "ex:ExecutionInstructions",
@@ -25,7 +30,8 @@
         "Automatically enter Test Need Evaluation Mode when tool loads",
         "Analyze product structure to identify test needs",
         "Generate test files if missing, then execute tests and report results",
-        "Support message response tests (individual actor responsibilities - how actors respond to messages), message flow tests (actor interactions, mode transitions, state management - how messages flow between actors), and agent workflow tests (end-to-end workflows, full agent execution - complete agent behavior)"
+        "Support message response tests (individual actor responsibilities - how actors respond to messages), message flow tests (actor interactions, mode transitions, state management - how messages flow between actors), and agent workflow tests (end-to-end workflows, full agent execution - complete agent behavior)",
+        "MANDATORY TEST EXECUTION: TestExecutionMode must load the target product as an agent and execute test scenarios through LLM reasoning. Results must be based on observed behavior, not manufactured or synthetic data."
       ],
       "immediateAction": {
         "trigger": "File loaded or user first message",
@@ -65,6 +71,12 @@
           "action": "State or imply that actors are simulating, emulating, or pretending to be the entity under test",
           "details": "CRITICAL: In AALang, actors ADOPT definitions - they do NOT simulate them. When executing tests, the actor BECOMES the entity under test through definition adoption, not through simulation. DO NOT use language like 'simulating', 'emulating', 'pretending to be', 'acting as if', 'role-playing as', or 'mimicking' when describing test execution. The actor IS the entity under test during test execution - there is no simulation layer. Use language like 'adopting the definition', 'becoming the actor', or 'executing as the entity'. This is fundamental to AALang's execution model: definition adoption transforms the LLM into the entity, not a simulator of the entity.",
           "appliesTo": ["test execution", "test generation", "test reporting", "all actor communications", "all documentation"]
+        },
+        {
+          "severity": "absolute",
+          "action": "Generate synthetic, fake, or manufactured test results",
+          "details": "Test reports MUST be based on actual execution results. Do NOT create fictional pass/fail rates or invent test outcomes. All results must come from genuine product execution through LLM reasoning and behavior observation.",
+          "appliesTo": ["test execution", "test reporting", "result generation"]
         }
       ]
     },
@@ -99,7 +111,9 @@
         "Test results include pass/fail status, detailed logs, and summary (no execution time)",
         "Test Need Evaluation Mode activates automatically on load, but waits for product file path if not provided",
         "Test files stored in tests/ subdirectory by default (user-configurable)",
-        "Separate files per test type: file naming patterns defined in AATest_spec.jsonld ex:TestTypes.types[].filePattern"
+        "Separate files per test type: file naming patterns defined in AATest_spec.jsonld ex:TestTypes.types[].filePattern",
+        "Success is measured by actual product validation, not test file completeness. Test execution must demonstrate real product behavior through LLM-based scenario execution.",
+        "Quality Assurance - Test Validity: Ensure all test results represent genuine product execution. Flag any synthetic results as critical violations requiring immediate correction."
       ],
       "prohibitions": [
         {
@@ -174,11 +188,17 @@
         "Use real agents for agent workflow tests",
         "Handle non-deterministic behavior with user-defined bounds",
         "If test execution fails mid-run, log failure, continue with remaining tests, report partial results",
-        "If mock actors not found, use MockManagerActor_aamock to create missing mocks"
+        "If mock actors not found, use MockManagerActor_aamock to create missing mocks",
+        "MANDATORY: Execute tests by adopting product actor definitions and observing actual behavior. Verify execution through semantic filtering of context. Report only observed results."
       ],
       "isolatedState": "ex:TestExecutionModeState",
       "contains": ["ex:MessageResponseTestExecutorActor", "ex:MessageFlowTestExecutorActor", "ex:AgentWorkflowTestExecutorActor", "ex:MockManagerActor_aamock"],
-      "precedes": ["ex:TestResultReportingMode"]
+      "precedes": ["ex:TestResultReportingMode"],
+      "transitionValidation": {
+        "description": "Cannot transition to TestResultReportingMode without verified execution logs showing actual product behavior observation and assertion evaluation.",
+        "enforcement": "TestExecutionMode personas MUST verify that all tests were executed with genuine product behavior observation before allowing transition.",
+        "checkMethod": "Verify execution logs contain actual product responses, state changes, and assertion evaluations from LLM reasoning."
+      }
     },
     {
       "@id": "ex:TestResultReportingMode",
@@ -191,7 +211,8 @@
         "Include detailed execution logs",
         "Include summary statistics",
         "Do NOT include execution time",
-        "Report both to console and file"
+        "Report both to console and file",
+        "Reports must include actual execution logs, observed behaviors, and genuine assertion evaluations. Prohibit any synthetic or placeholder results in final reports."
       ],
       "isolatedState": "ex:TestResultReportingModeState",
       "contains": ["ex:ResultAggregatorActor", "ex:ReportGeneratorActor"],

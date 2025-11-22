@@ -42,12 +42,12 @@ Learn more at: **[https://aalang.org](https://aalang.org)**
 Execution capability testing has been conducted using the [babylon 5 fan game](https://github.com/yenrab/fab-fan), which provides a medium to medium-high level of complexity for evaluating AALang capabilities. Direct testing of GAB and AATest is coming soon. Testing on other platforms coming soon.
 
 Works on:
-- Cursor
-  - Auto
-  - composer1
-  - claude-4.5-sonnet-thinking
-  - grok-code-fast-1
-  - gemini-3-pro-preview
+- Cursor (In Agent Mode)
+  - Auto (running, building, and testing)
+  - composer1 (running, not building and testing)
+  - claude-4.5-sonnet-thinking (running, not building and testing)
+  - grok-code-fast-1 (running, not building and testing)
+  - gemini-3-pro-preview (running, not building and testing)
 
 ## Actors and Personas
 
@@ -219,7 +219,7 @@ All AATest tests are message-based: tests send AALang messages to actors and obs
 ### Key Features
 
 - **Automatic Test Generation**: Analyzes your AALang product and generates appropriate test files
-- **LLM-Native Execution**: Tests execute within the LLM context, leveraging AALang's execution model
+- **LLM-Native Execution**: Tests execute within the LLM Agent's context, leveraging AALang's execution model
 - **Comprehensive Assertions**: Supports semantic assertions, pattern matching, structural verification, and more
 - **Test Fixtures and Mocks**: Built-in support for mock actors and test fixtures
 - **Detailed Reporting**: Generates comprehensive test results with pass/fail status, execution logs, and summary statistics
@@ -237,7 +237,7 @@ For complete documentation, see the [AATest README](AATest/README_AATest.md).
 
 ### Prerequisites
 
-- An LLM that can execute JSON-LD based prompts (e.g., Claude, GPT-4)
+- An LLM agent-based tool that can execute JSON-LD based prompts (e.g., Cursor, Claude Skills, home-made, etc.)
 - Access to the GAB specification files
 
 ### Using GAB
